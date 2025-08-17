@@ -19,7 +19,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}> {/* <-- Wrap your app here */}
+    <GestureHandlerRootView style={{ flex: 1 }}> // -- Wrap your app here */}
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

@@ -1,14 +1,14 @@
 // components/map/EventDetailModal.tsx
 import React from 'react';
 import {
-  Modal,
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
   Dimensions,
+  Image,
+  Modal,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { EventData } from './types';
 
@@ -37,19 +37,19 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.content}>
-            {/* Close Button */}
+
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Event Image */}
+
               <Image source={{ uri: event.imageUri }} style={styles.eventImage} />
               
-              {/* Event Title */}
+
               <Text style={styles.eventTitle}>{event.title}</Text>
               
-              {/* Event Description */}
+
               <Text style={styles.eventDescription}>{event.description}</Text>
             </ScrollView>
           </View>

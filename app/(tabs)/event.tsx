@@ -27,7 +27,7 @@ export default function EventScreen() {
       <ThemedView style={styles.header}>
         <ThemedText type="title">イベント一覧</ThemedText>
         <ThemedText style={styles.subtitle}>
-          地域で開催される様々なイベントをご覧ください
+          工大祭のイベント一覧です
         </ThemedText>
       </ThemedView>
       
