@@ -9,8 +9,8 @@ import Animated, {
   withDecay,
 } from 'react-native-reanimated';
 import MapSvg from '../../assets/images/map.svg';
-import { EventDetector } from './EventDetector';
 import { EventDetailModal } from './EventDetailModal';
+import { EventDetector } from './EventDetector';
 import { eventData } from './eventData';
 import { EventData } from './types';
 
@@ -39,47 +39,8 @@ export const InteractiveMap: React.FC = () => {
       savedScale.value = scale.value;
     });
 
-  // 元のpanGestureは削除され、modifiedPanGestureに統合されました
-    .onUpdate((event) => {
-      const maxTranslateX = Math.max(0, (screenWidth * scale.value - screenWidth) / 2 + (screenWidth / 4));
-      const maxTranslateY = Math.max(0, (screenHeight * scale.value - screenHeight) / 2 + (screenHeight / 4));
-
-      translateX.value = clamp(
-        savedTranslateX.value + event.translationX,
-        -maxTranslateX,
-        maxTranslateX
-      );
-      translateY.value = clamp(
-        savedTranslateY.value + event.translationY,
-        -maxTranslateY,
-        maxTranslateY
-      );
-    })
-    .onEnd((event) => {
-      savedTranslateX.value = translateX.value;
-      savedTranslateY.value = translateY.value;
-      
-      const clampX = [
-        -Math.max(0, (screenWidth * scale.value - screenWidth) / 2 + (screenWidth / 4)),
-        Math.max(0, (screenWidth * scale.value - screenWidth) / 2 + (screenWidth / 4)),
-      ];
-      const clampY = [
-        -Math.max(0, (screenHeight * scale.value - screenHeight) / 2 + (screenHeight / 4)),
-        Math.max(0, (screenHeight * scale.value - screenHeight) / 2 + (screenHeight / 4)),
-      ];
-
-      translateX.value = withDecay({
-        velocity: event.velocityX,
-        clamp: clampX,
-      });
-      translateY.value = withDecay({
-        velocity: event.velocityY,
-        clamp: clampY,
-      });
-    });
-
   const tapGesture = Gesture.Tap()
-    .maxDuration(250) // タップの最大持続時間を短く設定
+    .maxDuration(250)
     .shouldCancelWhenOutside(false)
     .onEnd((event) => {
       console.log('Tap detected at:', event.x, event.y);
@@ -99,9 +60,8 @@ export const InteractiveMap: React.FC = () => {
       }
     });
 
-  // パンジェスチャーを修正してタップと競合しないようにする
   const modifiedPanGesture = Gesture.Pan()
-    .minDistance(10) // 最小移動距離を設定してタップと区別
+    .minDistance(10)
     .onUpdate((event) => {
       const maxTranslateX = Math.max(0, (screenWidth * scale.value - screenWidth) / 2 + (screenWidth / 4));
       const maxTranslateY = Math.max(0, (screenHeight * scale.value - screenHeight) / 2 + (screenHeight / 4));
@@ -157,7 +117,6 @@ export const InteractiveMap: React.FC = () => {
     savedTranslateY.value = 0;
   };
 
-  // ジェスチャーの組み合わせを修正
   const composedGesture = Gesture.Race(
     tapGesture,
     Gesture.Simultaneous(pinchGesture, modifiedPanGesture)
