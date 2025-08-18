@@ -1,4 +1,4 @@
-const mapSvgContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="634.045pt" height="851.009pt" version="1.1" viewBox="-329.777 428.944 634.045 851.009">
   <!--
 	Exported with Concepts: Smarter Sketching
@@ -125,5 +125,4 @@ const mapSvgContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <path id="STROKE_64206736-f8e1-411d-9208-5e6d3061aa91" opacity="1.000" fill="none" stroke="#ffcb12" stroke-width="23.497" stroke-opacity="1.000" stroke-linecap="round" stroke-linejoin="round" d="M 107.317 1033.757 L 211.309 1017.623 "></path>
     <path id="STROKE_a32c3cad-d1de-4ff7-a4f0-37a2fe7029c2" opacity="1.000" fill="none" stroke="#ffcb12" stroke-width="23.497" stroke-opacity="1.000" stroke-linecap="round" stroke-linejoin="round" d="M 54.652 729.883 L 134.926 718.888 "></path>
   </g>
-</svg>`;
-export default mapSvgContent;
+</svg>

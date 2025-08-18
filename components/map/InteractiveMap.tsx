@@ -123,13 +123,18 @@ export const InteractiveMap: React.FC = () => {
   }));
 
   const reset = () => {
-    scale.value = 1;
-    translateX.value = 0;
-    translateY.value = 0;
-    savedScale.value = 1;
-    savedTranslateX.value = 0;
-    savedTranslateY.value = 0;
-  };
+  scale.value = 1;
+
+  // 画像サイズ（SVG全体）はスクリーンに合わせているので、
+  // 中央に配置するには画面サイズの半分を原点にする
+  translateX.value = 0;
+  translateY.value = (screenHeight - screenWidth) / 4; // ←ここで下方向に補正
+
+  savedScale.value = 1;
+  savedTranslateX.value = translateX.value;
+  savedTranslateY.value = translateY.value;
+};
+
 
   // ジェスチャーの競合を防ぐため、exclusiveにする
   const composedGesture = Gesture.Race(
@@ -155,7 +160,7 @@ export const InteractiveMap: React.FC = () => {
         </Animated.View>
       </GestureDetector>
       
-      {/* デバッグオーバーレイ - イベントエリアを視覚化 */}
+      
       {debugMode && (
         <DebugOverlay
           scale={scale}
