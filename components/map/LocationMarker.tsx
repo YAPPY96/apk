@@ -1,19 +1,17 @@
 // components/map/LocationMarker.tsx
+
 import React, { useEffect } from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
 import Animated, {
-  SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
-  withTiming,
+  withTiming
 } from 'react-native-reanimated';
 
 interface LocationMarkerProps {
-  scale: SharedValue<number>;
-  translateX: SharedValue<number>;
-  translateY: SharedValue<number>;
+  // REMOVED scale, translateX, and translateY from props
   x: number; // 画面座標でのX位置
   y: number; // 画面座標でのY位置
   accuracy?: number; // 位置の精度（メートル）
@@ -23,9 +21,6 @@ interface LocationMarkerProps {
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export const LocationMarker: React.FC<LocationMarkerProps> = ({
-  scale,
-  translateX,
-  translateY,
   x,
   y,
   accuracy,
@@ -36,50 +31,42 @@ export const LocationMarker: React.FC<LocationMarkerProps> = ({
 
   useEffect(() => {
     if (visible) {
-      // パルスアニメーション
       pulseScale.value = withRepeat(
         withSequence(
           withTiming(1.2, { duration: 1000 }),
           withTiming(1, { duration: 1000 })
         ),
-        -1, // 無限ループ
+        -1,
         false
       );
-      
       opacity.value = withTiming(1, { duration: 300 });
     } else {
       opacity.value = withTiming(0, { duration: 300 });
     }
   }, [visible]);
 
-  const markerStyle = useAnimatedStyle(() => {
-    if (!visible) return { opacity: 0 };
-
-    return {
-      opacity: opacity.value,
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { scale: scale.value },
-      ],
-    };
-  });
+  // REMOVED: The entire markerStyle animated style is gone.
+  // The marker will now inherit its position from the parent Animated.View.
 
   const innerDotStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseScale.value }],
+  }));
+  
+  const visibilityStyle = useAnimatedStyle(() => ({ // ADDED: Style for visibility
+    opacity: opacity.value,
   }));
 
   if (!visible) return null;
 
   return (
-    <Animated.View style={[styles.container, markerStyle]}>
-      {/* 精度円（もしaccuracyが提供されている場合） */}
+    // CHANGED: The container no longer uses markerStyle. It just handles visibility.
+    <Animated.View style={[styles.container, visibilityStyle]}>
       {accuracy && accuracy < 100 && (
         <Animated.View 
           style={[
             styles.accuracyCircle,
             {
-              left: x - (accuracy * 0.5), // 精度に基づく円のサイズ調整
+              left: x - (accuracy * 0.5),
               top: y - (accuracy * 0.5),
               width: accuracy,
               height: accuracy,
@@ -89,18 +76,14 @@ export const LocationMarker: React.FC<LocationMarkerProps> = ({
         />
       )}
       
-      {/* メインマーカー */}
       <Animated.View style={[
         styles.marker,
         {
-          left: x - 12, // マーカーの半分のサイズ分オフセット
+          left: x - 12,
           top: y - 12,
         }
       ]}>
-        {/* 外側の円（パルスアニメーション） */}
         <Animated.View style={[styles.outerCircle, innerDotStyle]} />
-        
-        {/* 内側のドット */}
         <Animated.View style={styles.innerDot} />
       </Animated.View>
     </Animated.View>
@@ -110,11 +93,12 @@ export const LocationMarker: React.FC<LocationMarkerProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
+    // The container now covers the whole map area, but its contents are positioned absolutely.
     top: 0,
     left: 0,
-    width: screenWidth,
-    height: screenHeight,
-    pointerEvents: 'none', // タッチイベントを透過
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
   },
   accuracyCircle: {
     position: 'absolute',
@@ -144,10 +128,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2, },
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,

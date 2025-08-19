@@ -1,14 +1,6 @@
 // components/map/LocationContext.tsx
-import { LocationProvider } from '@/components/map/LocationContext';
 import React, { createContext, ReactNode, useContext, useState } from 'react';
 
-export default function RootLayout() {
-  return (
-    <LocationProvider>
-      {/* ...既存のナビゲーションやレイアウト... */}
-    </LocationProvider>
-  );
-}
 export interface LocationState {
   isLoading: boolean;
   isEnabled: boolean;

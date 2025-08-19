@@ -1,5 +1,5 @@
 // components/map/InteractiveMap.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -12,9 +12,13 @@ import Animated, {
 import { SvgXml } from 'react-native-svg';
 import mapSvgContent from '../../assets/svg/mapSvgContent';
 import { DebugOverlay } from './DebugOverlay';
+import { eventData } from './eventData';
 import { EventDetailModal } from './EventDetailModal';
 import { EventDetector } from './EventDetector';
-import { eventData } from './eventData';
+import { useLocationContext } from './LocationContext';
+import { LocationIndicator } from './LocationIndicator';
+import { LocationMarker } from './LocationMarker';
+import { LocationService } from './LocationService';
 import { EventData } from './types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -22,7 +26,12 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export const InteractiveMap: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [debugMode, setDebugMode] = useState(false); // デバッグモードの状態
+  const [debugMode, setDebugMode] = useState(false);
+
+  // Location related state and services
+  const { updateLocationStatus } = useLocationContext();
+  const [locationMarker, setLocationMarker] = useState<{ x: number; y: number; accuracy?: number } | null>(null);
+  const locationService = useRef(new LocationService()).current;
 
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -34,7 +43,39 @@ export const InteractiveMap: React.FC = () => {
 
   const eventDetector = new EventDetector(eventData);
 
-  // イベント検出をJSスレッドで実行するための関数
+  // Function to get and display current location
+  const handleGetLocation = async () => {
+    setLocationMarker(null);
+    locationService.setStatusCallbacks({
+      onLoadingStart: () => updateLocationStatus({ isLoading: true, error: null }),
+      onPermissionDenied: () => updateLocationStatus({ hasPermission: false, error: '位置情報の権限がありません' }),
+      onPermissionGranted: () => updateLocationStatus({ hasPermission: true }),
+      onError: (error) => updateLocationStatus({ error, isEnabled: false }),
+      onSuccess: (location) => {
+        updateLocationStatus({ isEnabled: true, error: null });
+        const svgCoords = locationService.latLonToSvgCoordinate(location.latitude, location.longitude);
+        if (svgCoords) {
+            const screenPos = locationService.svgToScreenCoordinate(
+                svgCoords,
+                screenWidth,
+                screenHeight
+            );
+            setLocationMarker({ ...screenPos, accuracy: location.accuracy });
+        } else {
+          updateLocationStatus({ error: '現在地がマップの範囲外です', isEnabled: false });
+        }
+      },
+      onLoadingEnd: () => updateLocationStatus({ isLoading: false }),
+    });
+
+    await locationService.getCurrentLocation();
+  };
+  
+  // Get location on component mount
+  useEffect(() => {
+    handleGetLocation();
+  }, []);
+
   const handleEventDetection = (x: number, y: number) => {
     try {
       console.log('Tap detected at:', x, y);
@@ -123,20 +164,14 @@ export const InteractiveMap: React.FC = () => {
   }));
 
   const reset = () => {
-  scale.value = 1;
+    scale.value = 1;
+    translateX.value = 0;
+    translateY.value = (screenHeight - screenWidth) / 4;
+    savedScale.value = 1;
+    savedTranslateX.value = translateX.value;
+    savedTranslateY.value = translateY.value;
+  };
 
-  // 画像サイズ（SVG全体）はスクリーンに合わせているので、
-  // 中央に配置するには画面サイズの半分を原点にする
-  translateX.value = 0;
-  translateY.value = (screenHeight - screenWidth) / 4; // ←ここで下方向に補正
-
-  savedScale.value = 1;
-  savedTranslateX.value = translateX.value;
-  savedTranslateY.value = translateY.value;
-};
-
-
-  // ジェスチャーの競合を防ぐため、exclusiveにする
   const composedGesture = Gesture.Race(
     tapGesture,
     Gesture.Simultaneous(pinchGesture, panGesture)
@@ -157,9 +192,18 @@ export const InteractiveMap: React.FC = () => {
             height={screenHeight}
             preserveAspectRatio="xMidYMid meet"
           />
+          {locationMarker && (
+            <LocationMarker
+              x={locationMarker.x}
+              y={locationMarker.y}
+              accuracy={locationMarker.accuracy}
+              visible={!!locationMarker}
+            />
+          )}
         </Animated.View>
       </GestureDetector>
       
+      <LocationIndicator />
       
       {debugMode && (
         <DebugOverlay
@@ -175,6 +219,10 @@ export const InteractiveMap: React.FC = () => {
           <Text style={styles.resetButtonText}>Reset</Text>
         </TouchableOpacity>
         
+        <TouchableOpacity style={styles.resetButton} onPress={handleGetLocation}>
+          <Text style={styles.resetButtonText}>現在地</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity 
           style={[styles.resetButton, { backgroundColor: debugMode ? 'rgba(255,0,0,0.7)' : 'rgba(0,100,0,0.7)' }]} 
           onPress={() => setDebugMode(!debugMode)}
